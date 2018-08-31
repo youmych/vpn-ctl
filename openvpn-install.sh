@@ -230,14 +230,14 @@ else
 	git clone "$EASYRSAURL" /etc/openvpn/easy-rsa
 	chown -R root:root /etc/openvpn/easy-rsa/
 	cd /etc/openvpn/easy-rsa/
-	# Create the PKI, set up the CA, the DH params and the server + client certificates
-	./easyrsa init-pki
-	./easyrsa --batch build-ca nopass
-	./easyrsa gen-dh
-	./easyrsa build-server-full server nopass
-	./easyrsa build-client-full $CLIENT nopass
-	EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
 	mkdir -p /etc/openvpn/server /etc/openvpn/client
+	# Create the PKI, set up the CA, the DH params and the server + client certificates
+	./easyrsa3/easyrsa init-pki
+	./easyrsa3/easyrsa --batch build-ca nopass
+	./easyrsa3/easyrsa gen-dh
+	./easyrsa3/easyrsa build-server-full server nopass
+	./easyrsa3/easyrsa build-client-full $CLIENT nopass
+	EASYRSA_CRL_DAYS=3650 ./easyrsa3/easyrsa gen-crl
 	# Move the stuff we need
 	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn/server
 	# CRL is read with each client connection, when OpenVPN is dropped to nobody
