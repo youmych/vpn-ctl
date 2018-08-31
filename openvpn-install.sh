@@ -78,7 +78,7 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			echo "Please, use one word only, no special characters"
 			read -p "Client name: " -e -i client CLIENT
 			cd /etc/openvpn/easy-rsa/
-			./easyrsa build-client-full $CLIENT nopass
+			./easyrsa3/easyrsa build-client-full $CLIENT nopass
 			# Generates the custom client.ovpn
 			newclient "$CLIENT"
 			echo ""
@@ -104,8 +104,8 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			fi
 			CLIENT=$(tail -n +2 /etc/openvpn/easy-rsa/pki/index.txt | grep "^V" | cut -d '=' -f 2 | sed -n "$CLIENTNUMBER"p)
 			cd /etc/openvpn/easy-rsa/
-			./easyrsa --batch revoke $CLIENT
-			EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
+			./easyrsa3/easyrsa --batch revoke $CLIENT
+			EASYRSA_CRL_DAYS=3650 ./easyrsa3/easyrsa gen-crl
 			rm -rf pki/reqs/$CLIENT.req
 			rm -rf pki/private/$CLIENT.key
 			rm -rf pki/issued/$CLIENT.crt
