@@ -226,13 +226,9 @@ else
 		rm -rf /etc/openvpn/easy-rsa/
 	fi
 	# Get easy-rsa
-	EASYRSAURL='https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.4/EasyRSA-3.0.4.tgz'
-	wget -O ~/easyrsa.tgz "$EASYRSAURL" 2>/dev/null || curl -Lo ~/easyrsa.tgz "$EASYRSAURL"
-	tar xzf ~/easyrsa.tgz -C ~/
-	mv ~/EasyRSA-3.0.4/ /etc/openvpn/
-	mv /etc/openvpn/EasyRSA-3.0.4/ /etc/openvpn/easy-rsa/
+	EASYRSAURL='https://github.com/OpenVPN/easy-rsa.git'
+	git clone "$EASYRSAURL" /etc/openvpn/easy-rsa
 	chown -R root:root /etc/openvpn/easy-rsa/
-	rm -rf ~/easyrsa.tgz
 	cd /etc/openvpn/easy-rsa/
 	# Create the PKI, set up the CA, the DH params and the server + client certificates
 	./easyrsa init-pki
@@ -241,22 +237,23 @@ else
 	./easyrsa build-server-full server nopass
 	./easyrsa build-client-full $CLIENT nopass
 	EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
+	mkdir -p /etc/openvpn/server /etc/openvpn/client
 	# Move the stuff we need
-	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn
+	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn/server
 	# CRL is read with each client connection, when OpenVPN is dropped to nobody
-	chown nobody:$GROUPNAME /etc/openvpn/crl.pem
+	chown nobody:$GROUPNAME /etc/openvpn/server/crl.pem
 	# Generate key for tls-auth
-	openvpn --genkey --secret /etc/openvpn/ta.key
+	openvpn --genkey --secret /etc/openvpn/server/ta.key
 	# Generate server.conf
 	echo "port $PORT
 proto $PROTOCOL
 dev tun
 sndbuf 0
 rcvbuf 0
-ca ca.crt
-cert server.crt
-key server.key
-dh dh.pem
+ca server/ca.crt
+cert server/server.crt
+key server/server.key
+dh server/dh.pem
 auth SHA512
 tls-auth ta.key 0
 topology subnet
@@ -304,7 +301,7 @@ persist-key
 persist-tun
 status openvpn-status.log
 verb 3
-crl-verify crl.pem" >> /etc/openvpn/server.conf
+crl-verify server/crl.pem" >> /etc/openvpn/server.conf
 	# Enable net.ipv4.ip_forward for the system
 	sed -i '/\<net.ipv4.ip_forward\>/c\net.ipv4.ip_forward=1' /etc/sysctl.conf
 	if ! grep -q "\<net.ipv4.ip_forward\>" /etc/sysctl.conf; then
